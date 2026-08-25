@@ -2,10 +2,13 @@
 // 状態を受け取って画面(DOM)に表示するだけを担当する。
 // おみくじを引くロジックは omikuji.ts、ボタンと処理の連携は main.ts が持つ。
 
+
 // なおちゃんみえますか
+
 
 import type { OmikujiResult } from "./omikuji";
 import { isOmikujiEmpty } from "./omikuji"; // ★ 追加：空かチェックする関数をインポート
+
 
 // ステップ1（最初の課題）: この関数を実装する。
 //
@@ -19,9 +22,11 @@ import { isOmikujiEmpty } from "./omikuji"; // ★ 追加：空かチェック�
 //  - result が null のとき（リセット直後など）は初期メッセージを出す。
 const resultElement = document.getElementById("result")!;
 
+
 export function renderResult(result: OmikujiResult | null): void {
   // ステップ0 ではコンソールに結果が出るだけ。
   console.log(result);
+
 
   // TODO（ステップ1）: ここに DOM 操作を書いて、画面に結果を表示する。
   if (result !== null) {
@@ -40,3 +45,27 @@ export function renderResult(result: OmikujiResult | null): void {
 // 拡張ポイント（ステップ2以降）。必要になったら関数を足す。
 //  - 履歴をリスト表示する: document.createElement で <li> を作り、<ul id="history"> に足す関数。
 //  - 残りくじ枚数を表示する: omikuji.ts に残数を返す関数を足したうえで表示用の関数を足す。
+import { Omikujiremaining } from "./omikuji"; // ★ 追加：残り枚数を返す関数をインポート
+
+
+const remainingElement = document.getElementById("remaining")!;
+
+
+function updateRemaining(): void {
+  if (remainingElement !== null) {
+    remainingElement.textContent = `残りくじ枚数: ${Omikujiremaining()}枚`;
+  }
+}
+
+
+//ボタンを押したときに自動で残り枚数を更新するようにする
+document.getElementById("draw-button")?.addEventListener("click", () => {
+  setTimeout(updateRemaining, 0);
+});
+document.getElementById("reset-button")?.addEventListener("click", () => {
+  setTimeout(updateRemaining, 0);
+} );
+
+
+// 初期表示のときに残り枚数を更新する
+updateRemaining();
