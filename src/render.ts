@@ -24,23 +24,31 @@ const resultElement = document.getElementById("result")!;
 
 
 export function renderResult(result: OmikujiResult | null): void {
-  // ステップ0 ではコンソールに結果が出るだけ。
   console.log(result);
 
+  // 1. まずは一度「show」クラスを外して、棒を筒の中に戻す
+  resultElement.classList.remove("show");
 
-  // TODO（ステップ1）: ここに DOM 操作を書いて、画面に結果を表示する。
-  if (result !== null) {
-    resultElement.textContent = `${result}`;
-  } else {
-    // result が null のとき（自動判定します）
-    if (isOmikujiEmpty()) {
-      // 本当に箱が空っぽのとき
-      resultElement.textContent = "もうおみくじ箱は空っぽです！リセットしてください。";
+  // 2. ほんの少し（50ミリ秒）待ってから、文字を書き換えて再び飛び出させる
+  // ※一度クラスを外してすぐ付けるとアニメーションが発動しないため、setTimeout を使います
+  setTimeout(() => {
+    if (result !== null) {
+      resultElement.textContent = `${result}`;
     } else {
-      // リセット直後など、箱に中身があるのに null のとき（初期表示）
-      resultElement.textContent = "ここに結果が出ます";
+      if (isOmikujiEmpty()) {
+        // 棒からはみ出さないように少し短めの文章に変更
+        resultElement.textContent = "空っぽです"; 
+      } else {
+        // リセット直後（初期状態）は文字を空にして、完全に筒の中に隠す
+        resultElement.textContent = ""; 
+      }
     }
-  }
+
+    // 3. 結果が出たとき、または空っぽのときだけ、棒を飛び出させる
+    if (result !== null || isOmikujiEmpty()) {
+      resultElement.classList.add("show");
+    }
+  }, 50); 
 }
 // 拡張ポイント（ステップ2以降）。必要になったら関数を足す。
 //  - 履歴をリスト表示する: document.createElement で <li> を作り、<ul id="history"> に足す関数。

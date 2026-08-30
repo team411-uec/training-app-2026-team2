@@ -5,105 +5,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>おみくじアプリ</title>
 
-    <!--
-      最小限の見た目だけ整えている（Tailwind は使わない）。
-      各要素に class（例: omikuji-result）を付けているので、CSS を足して自由に装飾できる。
-      拡張ポイント（ステップ2以降）: 結果やボタンの文言・色を変える（この <style> を編集）。
-    -->
     <style>
+      /* --- 全体の和風設定 --- */
       body {
-        margin: 24px;
-        font-family: sans-serif;
-        line-height: 1.6;
-      }
-
-      .omikuji-result {
-        margin: 16px 0;
-        padding: 16px;
-        font-size: 32px;
+        background-color: #fdfbf6;
+        font-family: "Yu Mincho", "Zen Mincho", "Hiragino Mincho ProN", serif;
+        color: #333;
         text-align: center;
-        border: 1px solid #ccc;
-        border-radius: 8px;
       }
 
+      h1 {
+        color: #2c2929;
+        margin-top: 24px;
+      }
+
+      /* --- おみくじのステージ（筒と棒の配置場所） --- */
+      .omikuji-scene {
+        position: relative;
+        width: 300px;
+        height: 400px;
+        margin: 20px auto;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end; /* 下に揃える */
+        overflow: hidden; /* 筒より下にはみ出た棒を隠す */
+      }
+
+/* --- 1. おみくじの棒（結果） --- */
+      #result {
+        position: absolute;
+        bottom: 20px; 
+        z-index: 1; 
+        
+        background-color: #fceecb;
+        border: 2px solid #d4a359;
+        width: 60px;
+        height: 180px;
+        border-radius: 4px;
+
+        writing-mode: vertical-rl;
+        font-size: 24px;
+        font-weight: bold;
+        padding: 16px 8px;
+        box-sizing: border-box;
+        letter-spacing: 0.1em;
+
+        display: flex;
+        align-items: center;
+        
+        /* ★ 変更: 戻る時（下がる時）は、はみ出さないようにスッと戻る設定にする */
+        transition: transform 0.3s ease;
+      }
+
+      #result.show {
+        transform: translateY(-170px);
+        /* ★ 追加: 飛び出す時（上がる時）だけ、ポコンと跳ねる動きを適用する */
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      /* --- 2. おみくじの筒（箱） --- */
+      .omikuji-tsutsu {
+        position: absolute;
+        bottom: 20px;
+        z-index: 2; 
+
+        /* ★ 変更: 棒（180px）を完全に隠せるように、箱の高さを 200px に少し伸ばす */
+        width: 120px;
+        height: 200px;
+        background: linear-gradient(to right, #7a3e14, #a0522d, #7a3e14);
+        border-radius: 2px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        
+        color: #fdfbf6;
+        font-weight: bold;
+        font-size: 24px;
+        writing-mode: vertical-rl;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        letter-spacing: 0.5em;
+      }
+
+      /* --- ボタン・その他UI --- */
+      .omikuji-controls {
+        margin-top: 16px;
+      }
       .omikuji-controls button {
-        margin-right: 8px;
-        padding: 8px 16px;
-        font-size: 16px;
+        margin: 0 8px;
+        padding: 12px 24px;
+        font-size: 18px;
+        font-weight: bold;
+        font-family: inherit;
+        border: none;
+        border-radius: 4px;
         cursor: pointer;
       }
       #draw-button {
-        background-color: #ff5623;
+        background-color: #C82C16;
         color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 8px 16px;
-        font-size: 16px;
-        cursor: pointer;
-        position: relative;
-
-        /* 軽い立体感（2pxの影） */
-        box-shadow: 0 2px 0 #b33a1c;
+        box-shadow: 0 4px 0 #8A1A0B;
       }
-
-      /* 修正：:hover ではなく、JSでクラスがついた瞬間だけ実行する */
-      #draw-button.active-dip {
-        animation: dipAndReturn-draw 0.2s ease;
-      }
-      
-      /* アニメーションの流れ（内容はそのまま） */
-      @keyframes dipAndReturn-draw {
-        0% {
-          transform: translateY(0);
-          box-shadow: 0 2px 0 #9b3414;
-        }
-        50% {
-          transform: translateY(2px);
-          box-shadow: 0 0 0 #9b3414;
-        }
-        100% {
-          transform: translateY(0);
-          box-shadow: 0 2px 0 #9b3414;
-        }
-      }
-
       #reset-button {
-        /* 通常時の見た目 */
-        background-color: #3561f3;
+        background-color: #1c305c;
         color: #fff;
-        padding: 8px 16px;
-        font-size: 16px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        position: relative;
-        
-        /* 軽い立体感（2pxの影） */
-        box-shadow: 0 2px 0 #14257c;
+        box-shadow: 0 4px 0 #0f1a33;
+      }
+      /* ボタンを押したときのへこみ */
+      #draw-button.active-dip, #reset-button.active-dip {
+        transform: translateY(4px);
+        box-shadow: 0 0 0 transparent;
       }
 
-      /* 修正：:hover ではなく、JSでクラスがついた瞬間だけ実行する */
-      #reset-button.active-dip {
-        animation: dipAndReturn-reset 0.2s ease;
+      #remaining {
+        margin-top: 16px;
+        font-size: 18px;
+        font-weight: bold;
       }
-
-      /* アニメーションの流れ（内容はそのまま） */
-      @keyframes dipAndReturn-reset {
-        0% {
-          transform: translateY(0);
-          box-shadow: 0 2px 0 #14257c;
-        }
-        50% {
-          transform: translateY(2px);
-          box-shadow: 0 0 0 #14257c;
-        }
-        100% {
-          transform: translateY(0);
-          box-shadow: 0 2px 0 #14257c;
-        }
-      }
-
-
     </style>
   </head>
 
@@ -111,27 +127,22 @@
     <h1>おみくじアプリ</h1>
     <p>「おみくじを引く」ボタンを押してみましょう。</p>
 
-    <!--
-      結果を表示する場所。render.ts が id="result" を取得して書き換える。
-      ステップ1 を実装するまでは、この固定の文言のまま変わらない。
-    -->
-    <div id="result" class="omikuji-result">ここに結果が出ます</div>
+    <!-- ★ ここがおみくじのステージ（箱と棒）です -->
+    <div class="omikuji-scene">
+      <!-- 棒（結果表示） -->
+      <div id="result"></div>
+      
+      <!-- 筒（箱） -->
+      <div class="omikuji-tsutsu">おみくじ</div>
+    </div>
 
-    <!-- 操作ボタン。クリック時の処理は main.ts で結びつけている。 -->
     <div class="omikuji-controls">
       <button id="draw-button" onmousedown="this.classList.add('active-dip'); setTimeout(() => this.classList.remove('active-dip'), 200)">おみくじを引く</button>
       <button id="reset-button" onmousedown="this.classList.add('active-dip'); setTimeout(() => this.classList.remove('active-dip'), 200)">リセット</button>
     </div>
 
-    <!--
-      拡張ポイント（ステップ2以降で使う空きエリア）。使わないうちは消してもよい。
-        - 残りくじ枚数を出す → <div id="remaining">
-        - 引いた履歴を出す   → <ul id="history"> に <li> を足していく
-    -->
     <div id="remaining" class="omikuji-remaining"></div>
-    <ul id="history" class="omikuji-history"></ul>
 
-    <!-- TypeScript を読み込む（Vite が変換する）。 -->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
